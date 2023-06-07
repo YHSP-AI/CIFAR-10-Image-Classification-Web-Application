@@ -1,0 +1,6 @@
+CA2-DAAA2B02-P2112675-YeeHang
+
+
+Web Application: https://ca2-web-application.onrender.com
+
+Tensorflow Serving : https://ca2-tensorflow-serving-model-deployment.onrender.com 

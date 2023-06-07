@@ -1,0 +1,492 @@
+<!-- Inherits from layout.html -->
+{% extends "layout.html" %}
+<!-- The block content replace the one encapsulated in layout.html -->
+{% block content %}
+
+<style>
+    .circlecontainer {
+        height: 300px;
+        width: 300px;
+        background-color: #ffffff;
+        /* position: absolute;
+  transform: translate(-50%, -50%);
+  top: 50%;
+  left: 50%; */
+        border-radius: 8px;
+        box-shadow: 20px 20px 40px rgba(60, 60, 150, 0.25);
+        display: grid;
+        place-items: center;
+    }
+
+    .circular-progress {
+        position: relative;
+        height: 250px;
+        width: 250px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+    }
+
+    .circular-progress:before {
+        content: "";
+        position: absolute;
+        height: 84%;
+        width: 84%;
+        background-color: #ffffff;
+        border-radius: 50%;
+    }
+
+    .value-container {
+        position: relative;
+        font-family: "Poppins", sans-serif;
+        font-size: 50px;
+        color: #231c3d;
+    }
+</style>
+
+
+<div class="container-fluid callback my-2 pt-5">
+    <div class="container pt-2">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="bg-white border rounded p-4 p-sm-5 wow fadeInUp" data-wow-delay="0.5s">
+                    <div class="text-center mx-auto wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
+
+                        <h1 class="display-5 mb-5">Upload an image to get predictions on classifier </h1>
+                    </div>
+                    {% with messages = get_flashed_messages(with_categories=true)%}
+                    {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{category}} d-flex justify-content-center align-items-center ">
+                        <p class='p-0 m-0'>{{ message }}</p>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+
+
+                    <form action="/" method="post" novalidate onsubmit="() =>  false ">
+                        <div class="row g-3">
+
+
+                            <div class="" style="overflow-x: hidden;"><!--Prevent Overflow-->
+                                <canvas id="canvas" width="128" height="128"></canvas>
+                            </div>
+
+                            <label for="imageLoader" class="form-label">Upload a photo here to predict what it
+                                is</label>
+                            <input type="file" id="imageLoader" name="imageLoader" class="form-control" />
+
+                            <div class="col-12 text-center">
+                                <button class="btn btn-primary w-100 py-3" type="submit"
+                                    id='resnetpredictbutton'>Predict with Wide ResNet</button>
+                            </div>
+                            <div class="col-12 text-center">
+
+                                <button class="btn btn-primary w-100 py-3" type="submit" id='vggpredictbutton'>Predict
+                                    with vgg</button>
+                            </div>
+
+
+                            <div class="col-12 text-center">
+
+                                <button class="btn btn-primary w-100 py-3" type="submit" id='clearButton'>
+                                    Clear Drawing
+                                </button>
+                            </div>
+
+                            <h2 id='result' class="col-12 text-center"> </h2>
+
+
+
+                        </div>
+
+                    </form>
+                    <div style="display:none " id='probabilites'>
+
+
+
+
+
+                        <h2 class='text-justify text-center'>Probability of being the top 5 most probable classes</h2>
+
+
+
+
+                        <div id='firstrow' class="row">
+
+
+                            <div class="col-sm-4">
+                                <div class='circlecontainer'>
+                                    <h4 class='text-justify text-center' id='textlabel1'>Classname</h4>
+                                    <div class="circular-progress" id='circularprogressbar1'>
+                                        <div class="value-container" id='valuecontainer-1'>0%</div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="col-sm-4">
+                                <div class='circlecontainer'>
+                                    <h4 class='text-justify text-center' id='textlabel2'>Classname</h4>
+                                    <div class="circular-progress" id='circularprogressbar2'>
+                                        <div class="value-container" id='valuecontainer-2'>0%</div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="col-sm-4">
+                                <div class='circlecontainer'>
+                                    <h4 class='text-justify text-center' id='textlabel3'>Classname</h4>
+                                    <div class="circular-progress" id='circularprogressbar3'>
+                                        <div class="value-container" id='valuecontainer-3'>0%</div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                        </div>
+
+
+
+
+
+                        <div id='secondrow' class="row mt-3">
+
+
+                            <div class="col-sm-4  offset-sm-2">
+                                <div class='circlecontainer'>
+                                    <h4 class='text-justify text-center' id='textlabel4'>Classname</h4>
+                                    <div class="circular-progress" id='circularprogressbar4'>
+                                        <div class="value-container" id='valuecontainer-4'>0%</div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="col-sm-4 ">
+                                <div class='circlecontainer'>
+                                    <h4 class='text-justify text-center' id='textlabel5'>Classname</h4>
+                                    <div class="circular-progress" id='circularprogressbar5'>
+                                        <div class="value-container" id='valuecontainer-5'>0%</div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </div>
+
+
+
+
+
+
+                </div>
+            </div>
+
+
+
+        </div>
+
+
+
+
+
+
+
+
+
+    </div>
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <script>
+
+
+
+
+        $(window).on('load', () => {
+
+
+            var imageLoader = document.getElementById('imageLoader');
+            imageLoader.addEventListener('change', handleImage, false);
+            var canvas = document.getElementById('canvas');
+            var ctx = canvas.getContext('2d');
+
+
+
+            function handleImage(e) {
+                var reader = new FileReader();
+                reader.onload = function (event) {
+                    var img = new Image();
+                    img.onload = function () {
+
+
+                        var imgwidth = img.width;
+
+                        var imgheight = img.height;
+
+
+                        if (imgwidth > 1500) {
+                            let scalefactor = imgwidth / 1500
+                            imgwidth = imgwidth / scalefactor
+                            imgheight = imgheight / scalefactor
+                        } else if (imgheight > 1000) {
+                            let scalefactor = imgheight / 1000
+                            imgwidth = imgwidth / scalefactor
+                            imgheight = imgheight / scalefactor
+                        }
+
+                        ctx.clearRect(0, 0, canvas.width, canvas.width);
+
+                        canvas.width = imgwidth;
+                        canvas.height = imgheight;
+
+
+
+
+
+
+                        ctx.drawImage(img, 0, 0, imgwidth, imgheight);
+                    }
+                    img.src = event.target.result;
+                }
+                reader.readAsDataURL(e.target.files[0]);
+            }
+
+
+
+
+            var canvas = document.querySelector("#canvas");
+            var context = canvas.getContext("2d");
+            (function () {
+                canvas.width = 280;
+                canvas.height = 280;
+                var Mouse = { x: 0, y: 0 };
+                var lastMouse = { x: 0, y: 0 };
+                context.fillStyle = "white";
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                context.color = "black";
+                context.lineWidth = 2000;
+                context.lineJoin = context.lineCap = 'round';
+                canvas.addEventListener("mousemove", function (e) {
+                    lastMouse.x = Mouse.x;
+                    lastMouse.y = Mouse.y;
+                    // Mouse.x = e.pageX - this.offsetLeft-120;
+                    // Mouse.y = e.pageY - this.offsetTop-280;
+                    var rect = canvas.getBoundingClientRect();
+                    Mouse.x = e.clientX - rect.left;
+                    Mouse.y = e.clientY - rect.top;
+                    console.log(Mouse.x + "," + Mouse.y + "," + rect.left + "," + rect.top)
+                }, false);
+                canvas.addEventListener("mousedown", function (e) {
+                    canvas.addEventListener("mousemove", onPaint, false);
+                }, false);
+                canvas.addEventListener("mouseup", function () {
+                    canvas.removeEventListener("mousemove", onPaint, false);
+                }, false);
+                var onPaint = function () {
+                    context.lineWidth = context.lineWidth;
+                    context.lineJoin = "round";
+                    context.lineCap = "round";
+                    context.strokeStyle = context.color;
+                    context.beginPath();
+                    context.moveTo(lastMouse.x, lastMouse.y);
+                    context.lineTo(Mouse.x, Mouse.y);
+                    context.closePath();
+                    context.stroke();
+                };
+
+            }());
+
+
+            $("#clearButton").on("click", function (e) {
+                e.preventDefault() //prevent form submission
+                context.clearRect(0, 0, canvas.width, canvas.width);
+                context.fillStyle = "white";
+                context.fillRect(0, 0, canvas.width, canvas.height);
+            });
+
+
+
+            function setvalues(valueContainer, progressBar, classlabel, classname, pct) {
+                classlabel.textContent = `${classname}`;
+
+
+                valueContainer.textContent = `${pct}%`;
+                progressBar.style.background = `conic-gradient(#4d5bf9 ${pct * 3.6}deg,#cadcff ${pct * 3.6}deg)`;
+
+            }
+
+
+
+            $(window).resize(() => {
+                console.log('resize')
+                var rowheight = $('#firstrow').width()
+                $('.circlecontainer').width(rowheight / 3.1)
+                $('.circlecontainer').height(rowheight / 3.1)
+
+                $('.circular-progress').width(rowheight / 4)
+                $('.circular-progress').height(rowheight / 4)
+
+
+
+
+            })
+
+
+
+
+
+            function prediction(model) {
+                $('#result').text(' Predicting...');
+                $('#probabilites').css('display', 'none')
+
+
+
+                // var dataURL = canvas.toDataURL('image/png', 0.6);
+
+
+                canvas.toBlob(function(blob){
+
+
+                    var file = new File([blob], 'test.png', { type: 'image/png' });
+
+                    
+                var formdata = new FormData();
+                formdata.append("image", file);
+                const customHeader = {
+                    headers: {
+                        "Content-Type": 'multipart/form-data',
+                    },
+                    timeout : 3*60*1000
+                };
+
+
+                axios.post(`/apipredictproba/${model}`, formdata,customHeader).then(function (data) {
+                    console.log(data)
+                    var data = data.data
+
+                    alert('Success')
+                    var probabilites = data.probabilities
+
+
+                    var classes = data.classes
+                    console.log(probabilites, classes)
+                    $('#probabilites').css('display', 'block')
+
+                    $('#result').text("Predicted : " + classes[0]);
+
+
+
+
+
+
+
+
+                    for (var i = 1; i < 6; i++) {
+
+
+                        let progressBar = document.querySelector(`#circularprogressbar${i}`);
+                        let valueContainer = document.querySelector(`#valuecontainer-${i}`);
+                        let classlabelbar = document.querySelector(`#textlabel${i}`);
+
+                        console.log(classlabelbar)
+
+
+                        setvalues(valueContainer, progressBar, classlabelbar, classes[i - 1], probabilites[i - 1])
+
+
+                    }
+
+                }
+                ).catch(function (err) {
+                    alert('Prediction failed, Please try again')
+                    console.log(err)
+                })
+
+
+
+
+
+
+
+
+
+
+
+
+
+                } , 'image/png' )
+       
+                // $.ajax({
+                //     type: "POST",
+                //     url: `/apipredictproba/${model}`,
+                //     data: img,
+                //     success: function (data) {
+                //         console.log(data)
+
+                //         alert('setting')
+                //         var probabilites = data.probabilities
+
+
+                //         var classes = data.classes
+                //         $('#probabilites').css('display', 'block')
+
+                //         $('#result').text("Predicted : " + classes[0]);
+
+
+
+
+
+
+
+
+                //         for (var i = 1; i < 6; i++) {
+
+
+                //             let progressBar = document.querySelector(`#circularprogressbar${i}`);
+                //             let valueContainer = document.querySelector(`#valuecontainer-${i}`);
+                //             let classlabelbar = document.querySelector(`#textlabel${i}`);
+
+                //             console.log(classlabelbar)
+
+
+                //             setvalues(valueContainer, progressBar, classlabelbar, classes[i - 1], probabilites[i - 1])
+
+
+                //         }
+                //     },
+                //     error: function (err) {
+                //         alert(err)
+                //         console.log(err)
+                //     }
+                // });
+
+
+            }
+            $("#resnetpredictbutton").click(function (e) {
+                e.preventDefault()//prevent form submission
+                prediction('wideresnet')
+            });
+
+            $("#vggpredictbutton").click(function (e) {
+                e.preventDefault()
+
+                prediction("vgg")
+            });
+
+
+
+
+
+        })
+
+
+    </script>
+    {% endblock %}

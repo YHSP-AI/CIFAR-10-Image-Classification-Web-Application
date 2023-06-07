@@ -1,0 +1,229 @@
+<!-- Inherits from layout.html -->
+{% extends "layout.html" %}
+<!-- The block content replace the one encapsulated in layout.html -->
+{% block content %}
+
+
+
+
+<div class="container-fluid callback my-2 pt-5">
+    <div class="container pt-2">
+        <div class="row justify-content-center">
+            <div class="col-lg-12">
+                <div class="bg-white border rounded p-4 p-sm-5 wow fadeInUp" data-wow-delay="0.5s">
+                    <div class="text-center mx-auto wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
+                        <p class="d-inline-block border rounded text-primary fw-semi-bold py-1 px-3">Get In
+                            Touch
+                        </p>
+                        <h1 class="display-5 mb-5">Your Prediction history</h1>
+                    </div>
+                    {% with messages = get_flashed_messages(with_categories=true)%}
+                    {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{category}} d-flex justify-content-center align-items-center ">
+                        <p class='p-0 m-0'>{{ message }}</p>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+
+
+
+
+
+                    <form action="/predhistory" method="post" id="filtersearchform" novalidate >
+                        {{ form.csrf_token }}
+                        <div class="row g-3">
+
+
+                            <div class="col-sm-6">
+                                <div class="form-floating">
+                                    <div>{{ form.mindate.label }}</div>
+                                    <div>{{ form.mindate(class_='form-control') }}</div>
+                                    {% for error in form.mindate.errors %}
+                                    <span class="error-message">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-floating">
+                                    <div>{{ form.maxdate.label }}</div>
+                                    <div>{{ form.maxdate(class_='form-control') }}</div>
+                                    {% for error in form.maxdate.errors %}
+                                    <span class="error-message">{{ error }}</span>
+                                    {% endfor %}
+
+
+                                </div>
+                            </div>
+
+                            <div class="col-sm-12">
+                                <div class="form-floating">
+                                    <div>{{ form.model.label }}</div>
+                                    <div>{{ form.model(class_='form-control') }}</div>
+                                    {% for error in form.model.errors %}
+                                    <span class="error-message">{{ error }}</span>
+                                    {% endfor %}
+
+                                </div>
+                            </div>
+
+
+                            <div class="col-12 text-center">
+                                <button class="btn btn-primary w-100 py-3" type="submit">Seach and Filter</button>
+                            </div>
+
+
+
+
+                        </div>
+                    </form>
+
+
+
+
+
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th scope="col">Image</th>
+                                <th scope="col">Model</th>
+                                <th scope="col">Prediction</th>
+                                <th scope="col">Datetime</th>
+                                <th scope="col">Delete</th>
+
+
+                            </tr>
+                        </thead>
+                        <tbody id='tablebody'>
+
+                            {% for pred in predictions.items %}
+                            <tr>
+                                <th><img src="/predphoto/{{ pred.filename }}" alt="" class="allimages"></th>
+                                <td>{{pred.model}}</td>
+                                <td>{{class_mapping[pred.predictedClass]}}</td>
+
+                                <td> {{pred.predicted_on.strftime("%d %b %y %H:%M")}}</td>
+                                <td>
+                                    <form name="frmRemoveEntry" action="/remove" method="post" novalidate>
+                                        <input type="hidden" name="id" value="{{pred.id}}">
+                                        <input type="submit" class="form-control btn btn-danger" value="Remove">
+                                    </form>
+                                </td>
+                            </tr>
+
+
+                            {% endfor %}
+
+                        </tbody>
+                    </table>
+
+
+                    {% for page_num in predictions.iter_pages(left_edge=3, right_edge=3,left_current=2, right_current=2)
+                    %}
+
+                    <!-- href="{{ url_for('predicthist', page=page_num) }}"
+                    href="{{ url_for('predicthist', page=page_num) }}"
+ -->
+
+                    {% if page_num %}
+                    {% if predictions.page == page_num %}
+                    <input type='submit' form= 'filtersearchform'class="btn btn-info mb-4 paginationbutton" 
+                         value ={{page_num}}
+                       
+                        for>
+                    </input>
+                    {% else %}
+                    <input type='submit' form = 'filtersearchform' class="btn btn-outline-info mb-4 paginationbutton"
+                    value ={{page_num}}
+                       >
+                    </input>
+                    {% endif %}
+
+                    {% else %} ...
+
+                    {% endif %}
+
+                    {% endfor %}
+
+                    {#
+
+                    #}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+    <script>
+
+        function test(e) {
+            $('#filtersearchform').attr('action', $('#filtersearchform').attr('action') + '?page=' + $(e.target).val());
+        }
+
+        $('.paginationbutton').on('click' ,test )
+        console.log('here')
+
+        // *************************************
+        // set aspect ratio of  photo better 
+        //******************************************
+        $('.allimages').on('load', function (e) {
+            //maintain aspect ratio
+            var img = e.target;
+            console.log(img)
+            var height = img.height
+            var width = img.width
+
+            var scale = width / 200
+            console.log(height, width, scale)
+
+            if (height > 300) {
+                // img.height(height / scale)
+                img.height = height / scale
+
+            }
+
+
+            if (height > 300) {
+                img.width = width / scale
+            }
+
+        }).each(function (i, e) {
+            if (this.complete) {
+
+                $(this).trigger('load');
+            }
+        });
+    // });
+
+    // $('.allimages').on('load', function (e) {
+    //     // if (this.complete) $(this).trigger('load');
+    //     var img = e.target;
+    //     var height = img.height()
+    //     var width = img.width()
+
+    //     var scale = width / 200
+    //     console.log(height, width, scale)
+
+    //     if (height > 300) {
+    //         img.height(height / scale)
+
+    //     }
+
+
+    //     if (height > 300) {
+    //         img.width(width / scale)
+    //     }
+    // }).each(function (i, e) {
+    //     if (this.complete) {
+
+    //         $(this).trigger('load');
+    //     }
+    // });
+
+
+    </script>
+    {% endblock %}

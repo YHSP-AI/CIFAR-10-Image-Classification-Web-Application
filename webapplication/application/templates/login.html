@@ -1,0 +1,113 @@
+<!-- Inherits from layout.html -->
+{% extends "layout.html" %}
+<!-- The block content replace the one encapsulated in layout.html -->
+{% block content %}
+
+
+
+
+<div class="container-fluid callback my-2 pt-5">
+    <div class="container pt-2">
+        <div class="row justify-content-center">
+            <div class="col-lg-5">
+                <div class="bg-white border rounded p-4 p-sm-5 wow fadeInUp" data-wow-delay="0.5s">
+                    <div class="text-center mx-auto wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
+                        <p class="d-inline-block border rounded text-primary fw-semi-bold py-1 px-3">Get In
+                            Touch
+                        </p>
+                        <h1 class="display-5 mb-5">Log into your account  </h1>
+                    </div>
+                    {% with messages = get_flashed_messages(with_categories=true)%}
+                    {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{category}} d-flex justify-content-center align-items-center ">
+                        <p class='p-0 m-0'>{{ message }}</p>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+                    <form action="/login" method="post" novalidate>
+                        {{ form.csrf_token }}
+                        <div class="row g-3">
+
+
+                            <div class="col-sm-12">
+                                <div class="form-floating">
+                                    <div>{{ form.username.label }}</div>
+                                    <div>{{ form.username(class_='form-control') }}</div>
+                                    {% for error in form.username.errors %}
+                                    <span class="error-message">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <div class="form-floating">
+                                    <div>{{ form.password.label }}</div>
+                                    <div>{{ form.password(class_='form-control') }}</div>
+                                    {% for error in form.password.errors %}
+                                    <span class="error-message">{{ error }}</span>
+                                    {% endfor %}
+
+
+                                </div>
+                            </div>
+            
+
+
+                            <div class="col-12 text-center">
+                                <button class="btn btn-primary w-100 py-3" type="submit">Submit Now</button>
+                            </div>
+
+
+
+
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 
+
+<div>
+
+    <hr>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Sepal Length</th>
+                <th>Sepal Width</th>
+                <th>Petal Length</th>
+                <th>Petal Width</th>
+                <th>Prediction</th>
+                <th>Timestamp</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in entries %}
+            <tr>
+                <td>{{ entry.sepal_length}}</td>
+                <td>{{ entry.sepal_width }}</td>
+                <td>{{ entry.petal_length}}</td>
+                <td>{{ entry.petal_width }}</td>
+                <td>{{ entry.prediction | int }}</td>
+                <td>{{ entry.predicted_on.strftime("%d %b %y %H:%M")}}</td>
+
+
+                <td>
+                    <form name="frmRemoveEntry" action="/remove" method="post" novalidate>
+                        <input type="hidden" name="id" value="{{entry.id}}">
+                        <input type="submit" class="form-control btn-danger" value="Remove">
+                    </form>
+
+
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div> -->
+    {% endblock %}
